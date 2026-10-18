@@ -76,6 +76,14 @@
             font-weight: 600;
             margin-bottom: 20px;
 }
+        #invoice-status-badge.status-approved {
+            background-color: #dcfce7;
+            color: #166534;
+}
+        #invoice-status-badge.status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+}
         #back-dashboard {
             display: inline-block;
             color: #2563eb;
@@ -147,6 +155,7 @@
             const invoiceId = params.get("id");
 
             document.getElementById("approve-invoice").addEventListener("click", async () => {
+                if (!confirm("Are you sure you want to approve this invoice?")) return;
                 const response = await fetch(
                     `/invoices/${invoiceId}/status?status=approved`,
                     { method: "PATCH" }
@@ -206,11 +215,21 @@
                     "⚠️ This invoice is overdue and requires review.";
             }
                 document.getElementById("invoice-status-badge").textContent =
-                invoice.status === "needs_review"
-                    ? "Needs Review"
-                    : (invoice.status || "Unknown");
+                invoice.status === "needs_review" ? "Needs Review" :
+                    invoice.status === "approved" ? "Approved" :
+                        invoice.status === "rejected" ? "Rejected" :
+                            (invoice.status || "Unknown");
+                    if (invoice.status === "approved") {
+                        document.getElementById("invoice-status-badge").classList.add("status-approved");
+                        document.getElementById("approve-invoice").style.display = "none";
+                    }
+
+                if (invoice.status === "rejected") {
+                document.getElementById("invoice-status-badge").classList.add("status-rejected");
+                document.getElementById("reject-invoice").style.display = "none";
+            }
             document.getElementById("invoice-details").textContent =
-                `Invoice Number: ${invoice.invoice_number}\nVendor: ${invoice.vendor_name}\nInvoice Date: ${invoice.invoice_date || "--"}\nDue Date: ${invoice.due_date || "--"}\nTotal: ${invoice.currency || "USD"} ${Number(invoice.total || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nStatus: ${invoice.status === "needs_review" ? "Needs Review" : (invoice.status || "Unknown")}\nSubtotal: ${invoice.currency || "USD"} ${Number(invoice.subtotal || 0).toFixed(2)}\nTax: ${invoice.currency || "USD"} ${Number(invoice.tax || 0).toFixed(2)}\nBill To: ${invoice.bill_to || "--"}`;
+                `Invoice Number: ${invoice.invoice_number}\nVendor: ${invoice.vendor_name}\nInvoice Date: ${invoice.invoice_date || "--"}\nDue Date: ${invoice.due_date || "--"}\nTotal: ${invoice.currency || "USD"} ${Number(invoice.total || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nStatus: ${invoice.status === "needs_review" ? "Needs Review" : invoice.status === "approved" ? "Approved" : invoice.status === "rejected" ? "Rejected" : (invoice.status || "Unknown") }\nSubtotal: ${invoice.currency || "USD"} ${Number(invoice.subtotal || 0).toFixed(2)}\nTax: ${invoice.currency || "USD"} ${Number(invoice.tax || 0).toFixed(2)}\nBill To: ${invoice.bill_to || "--"}`;
             }
 
             loadInvoiceDetails();
