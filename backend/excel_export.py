@@ -116,7 +116,7 @@ def create_excel_workbook():
     for exception in exceptions:
         exceptions_sheet.append(exception)
 
-        summary_sheet = workbook.create_sheet("Summary")
+    summary_sheet = workbook.create_sheet("Summary")
 
     summary_sheet.append(["Metric", "Value"])
     with sqlite3.connect(DATABASE_PATH) as connection:
