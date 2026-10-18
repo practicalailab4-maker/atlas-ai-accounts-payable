@@ -3,6 +3,27 @@
 
 <head>
     <style>
+        #reject-invoice {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+}
+        #approve-invoice {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+}
         #view-original-pdf:hover {
             background-color: #1d4ed8;
 }
@@ -101,6 +122,10 @@
 <div id="invoice-status-badge">
     Needs Review
 </div>
+<div id="invoice-actions">
+    <button type="button" id="approve-invoice">Approve Invoice</button>
+    <button type="button" id="reject-invoice">Reject Invoice</button>
+</div>
 <div id="overdue-warning"></div>
 
 
@@ -119,7 +144,41 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const invoiceId = params.get("id");
+            const invoiceId = params.get("id");
+
+            document.getElementById("approve-invoice").addEventListener("click", async () => {
+                const response = await fetch(
+                    `/invoices/${invoiceId}/status?status=approved`,
+                    { method: "PATCH" }
+                );
+
+                if (response.ok) {
+                    alert("Invoice approved successfully!");
+                    location.reload();
+                } else {
+                    alert("Unable to approve invoice.");
+                }
+            });
+
+            // ADD THE REJECT HANDLER HERE
+            document.getElementById("reject-invoice").addEventListener("click", async () => {
+                if (!confirm("Are you sure you want to reject this invoice?")) {
+                    return;
+                }
+
+                const response = await fetch(
+                    `/invoices/${invoiceId}/status?status=rejected`,
+                    { method: "PATCH" }
+                );
+
+                if (response.ok) {
+                    alert("Invoice rejected successfully!");
+                    location.reload();
+                } else {
+                    alert("Unable to reject invoice.");
+                }
+            });
+            
         document.getElementById("view-original-pdf").addEventListener("click", () => {
                 window.open(`/invoices/${invoiceId}/pdf?refresh=${Date.now()}`, "_blank");
             });

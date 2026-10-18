@@ -8,7 +8,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 from backend.invoice_processor import process_invoice
-from backend.database import DATA_DIR, list_invoices, get_invoice
+from backend.database import DATA_DIR, list_invoices, get_invoice, update_invoice_status
 
 app = FastAPI(
     title="Atlas AI Accounts Payable",
@@ -104,6 +104,24 @@ def get_invoices():
 @app.get("/invoices/{invoice_id}")
 def get_invoice_by_id(invoice_id: int):
     return get_invoice(invoice_id)
+
+@app.patch("/invoices/{invoice_id}/status")
+def change_invoice_status(invoice_id: int, status: str):
+    if status not in ("needs_review", "approved", "rejected"):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid invoice status"
+        )
+
+    updated = update_invoice_status(invoice_id, status)
+
+    if not updated:
+        raise HTTPException(
+            status_code=404,
+            detail="Invoice not found"
+        )
+
+    return {"invoice_id": invoice_id, "status": status}
 
 
 @app.post("/invoices/upload")

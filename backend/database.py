@@ -149,3 +149,11 @@ def get_invoice(invoice_id: int):
         connection.row_factory = sqlite3.Row
         row = connection.execute("SELECT * FROM invoices WHERE id = ?", (invoice_id,)).fetchone()
         return dict(row) if row else None
+def update_invoice_status(invoice_id: int, status: str):
+    with sqlite3.connect(DATABASE_PATH) as connection:
+        cursor = connection.execute(
+            "UPDATE invoices SET status = ? WHERE id = ?",
+            (status, invoice_id)
+        )
+        connection.commit()
+        return cursor.rowcount > 0
