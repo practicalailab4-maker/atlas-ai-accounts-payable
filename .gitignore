@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Atlas local data and invoice records
+/data/
+.DS_Store
