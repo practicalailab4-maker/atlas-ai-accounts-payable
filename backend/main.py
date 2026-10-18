@@ -8,6 +8,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 from backend.invoice_processor import process_invoice
+from backend.excel_export import create_excel_workbook
 from backend.database import DATA_DIR, list_invoices, get_invoice, update_invoice_status
 
 app = FastAPI(
@@ -29,6 +30,8 @@ def home():
 def download_invoice_register():
     excel_path = DATA_DIR / "exports" / "atlas_invoice_register.xlsx"
 
+    create_excel_workbook()
+
     if not excel_path.exists():
         raise HTTPException(
             status_code=404,
@@ -40,17 +43,12 @@ def download_invoice_register():
         filename="atlas_invoice_register.xlsx",
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+    
 @app.get("/invoices/{invoice_id}/pdf")
 def view_invoice_pdf(invoice_id: int):
     invoice = get_invoice(invoice_id)
-
-    if not invoice:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-
-    
-    @app.get("/invoices/{invoice_id}/pdf")
-    def view_invoice_pdf(invoice_id: int):
-        invoice = get_invoice(invoice_id)
 
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -62,18 +60,6 @@ def view_invoice_pdf(invoice_id: int):
             status_code=403,
             detail="PDF access not permitted"
         )
-
-    if not pdf_path.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail="Original PDF file not found"
-        )
-
-    return FileResponse(
-        path=pdf_path,
-        media_type="application/pdf",
-        content_disposition_type="inline"
-    )
 
     if not pdf_path.is_file():
         raise HTTPException(
@@ -123,8 +109,6 @@ def change_invoice_status(invoice_id: int, status: str):
 
     return {"invoice_id": invoice_id, "status": status}
 
-
-@app.post("/invoices/upload")
 
 @app.post("/invoices/upload")
 async def upload_invoice(file: UploadFile = File(...)):
