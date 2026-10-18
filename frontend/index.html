@@ -398,7 +398,7 @@
             updateVisibleInvoiceCount();
         });
         document.getElementById("download-excel").addEventListener("click", function () {
-            window.location.href = "/invoices/export";
+            window.location.href = `/invoices/export?refresh=${Date.now()}`;
         });
         function updateVisibleInvoiceCount() {
             const rows = document.querySelectorAll("#invoice-table-body tr");
