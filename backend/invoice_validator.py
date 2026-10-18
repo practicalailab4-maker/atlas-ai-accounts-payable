@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import date
 
 from backend.invoice_schema import InvoiceData
 
@@ -16,6 +17,19 @@ def validate_invoice(invoice: InvoiceData) -> list[str]:
 
     issues = []
     calculated_subtotal = Decimal("0.00")
+
+    if invoice.due_date:
+        try:
+            invoice_date = date.fromisoformat(invoice.invoice_date)
+            due_date = date.fromisoformat(invoice.due_date)
+
+            if due_date < invoice_date:
+                issues.append(
+                    f"Due date {invoice.due_date} is earlier than "
+                    f"invoice date {invoice.invoice_date}"
+                )
+        except ValueError:
+            issues.append("Invalid invoice date or due date format")
 
     for index, item in enumerate(invoice.line_items, start=1):
         expected_amount = money(
