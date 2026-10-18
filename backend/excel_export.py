@@ -132,6 +132,21 @@ def create_excel_workbook():
         ).fetchone()[0]
 
     summary_sheet.append(["Needs Review", needs_review])
+
+    with sqlite3.connect(DATABASE_PATH) as connection:
+        approved_count = connection.execute(
+            "SELECT COUNT(*) FROM invoices WHERE status = ?",
+            ("approved",),
+        ).fetchone()[0]
+
+    summary_sheet.append(["Approved", approved_count])
+    with sqlite3.connect(DATABASE_PATH) as connection:
+        rejected_count = connection.execute(
+            "SELECT COUNT(*) FROM invoices WHERE status = ?",
+            ("rejected",),
+        ).fetchone()[0]
+
+    summary_sheet.append(["Rejected", rejected_count])
     with sqlite3.connect(DATABASE_PATH) as connection:
         validation_issue_count = connection.execute(
             "SELECT COUNT(*) FROM invoice_validation_issues"
@@ -157,7 +172,7 @@ def create_excel_workbook():
         float(total_invoice_value),
     ])
 
-    summary_sheet["B5"].number_format = '"$"#,##0.00'
+    summary_sheet["B7"].number_format = '"$"#,##0.00'
 
     
     header_fill = PatternFill(
