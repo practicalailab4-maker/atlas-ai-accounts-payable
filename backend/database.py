@@ -61,6 +61,17 @@ def initialize_database():
                     ON DELETE CASCADE
             )
         """)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS invoice_activity (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (invoice_id) REFERENCES invoices(id)
+                    ON DELETE CASCADE
+            )
+        """)
         connection.commit()
 
         from backend.invoice_schema import InvoiceData
@@ -131,7 +142,16 @@ def save_invoice(
                 """,
                 (invoice_id, issue),
             )
+        connection.execute(
+            """
+            INSERT INTO invoice_activity (invoice_id, action, details)
+            VALUES (?, ?, ?)
+            """,
+            (invoice_id, "uploaded", f"Invoice uploaded from {source_file}")
+        )
         connection.commit()
+
+
 
     excel_export = import_module("backend.excel_export")
     excel_export.create_excel_workbook()
@@ -194,5 +214,15 @@ def update_invoice_status(invoice_id: int, status: str):
             "UPDATE invoices SET status = ? WHERE id = ?",
             (status, invoice_id)
         )
+
+        if cursor.rowcount > 0:
+            connection.execute(
+                """
+                INSERT INTO invoice_activity (invoice_id, action, details)
+                VALUES (?, ?, ?)
+                """,
+                (invoice_id, "status_changed", f"Status changed to {status}")
+            )
+
         connection.commit()
         return cursor.rowcount > 0
