@@ -148,7 +148,32 @@ def get_invoice(invoice_id: int):
     with sqlite3.connect(DATABASE_PATH) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute("SELECT * FROM invoices WHERE id = ?", (invoice_id,)).fetchone()
-        return dict(row) if row else None
+
+
+
+        if row is None:
+            return None
+
+        invoice = dict(row)
+
+        issues = connection.execute(
+            """
+            SELECT issue_message
+            FROM invoice_validation_issues
+            WHERE invoice_id = ?
+            ORDER BY id
+            """,
+            (invoice_id,),
+        ).fetchall()
+
+        invoice["validation_issues"] = [
+            issue["issue_message"] for issue in issues
+        ]
+
+        return invoice
+
+
+    
 def update_invoice_status(invoice_id: int, status: str):
     with sqlite3.connect(DATABASE_PATH) as connection:
         cursor = connection.execute(

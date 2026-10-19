@@ -141,7 +141,10 @@
 <div id="invoice-details" style="white-space: pre-line;">
     Loading invoice details...
 </div>
-
+<h2>Validation Issues</h2>
+<div id="validation-issues">
+    Loading validation issues...
+</div>
 <h2>Source Document</h2>
 <div id="source-document">
     Loading source document...
@@ -196,6 +199,22 @@
         async function loadInvoiceDetails() {
                 const response = await fetch(`/invoices/${invoiceId}`);
                 const invoice = await response.json();
+
+                const validationIssues = document.getElementById("validation-issues");
+
+                if (invoice.validation_issues && invoice.validation_issues.length > 0) {
+                    const issueList = document.createElement("ul");
+
+                    invoice.validation_issues.forEach(issue => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = issue;
+                        issueList.appendChild(listItem);
+                    });
+
+                    validationIssues.replaceChildren(issueList);
+                } else {
+                    validationIssues.textContent = "No validation issues found.";
+                }
 
                 console.log("Invoice details:", invoice);
                 const sourceFilename = invoice.source_file
