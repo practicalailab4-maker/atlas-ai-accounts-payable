@@ -145,6 +145,10 @@
 <div id="validation-issues">
     Loading validation issues...
 </div>
+<h2>Activity History</h2>
+<div id="activity-history">
+    Loading activity history...
+</div>
 <h2>Source Document</h2>
 <div id="source-document">
     Loading source document...
@@ -215,7 +219,22 @@
                 } else {
                     validationIssues.textContent = "No validation issues found.";
                 }
+            const activityHistory = document.getElementById("activity-history");
 
+            if (invoice.activity_history && invoice.activity_history.length > 0) {
+                const activityList = document.createElement("ul");
+
+                invoice.activity_history.forEach(activity => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent =
+                        `${activity.created_at} — ${activity.details || activity.action}`;
+                    activityList.appendChild(listItem);
+                });
+
+                activityHistory.replaceChildren(activityList);
+            } else {
+                activityHistory.textContent = "No activity recorded yet.";
+            }
                 console.log("Invoice details:", invoice);
                 const sourceFilename = invoice.source_file
                 ? invoice.source_file.split(/[\\/]/).pop()

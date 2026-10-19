@@ -203,7 +203,19 @@ def get_invoice(invoice_id: int):
         invoice["validation_issues"] = [
             issue["issue_message"] for issue in issues
         ]
+        activities = connection.execute(
+            """
+            SELECT action, details, created_at
+            FROM invoice_activity
+            WHERE invoice_id = ?
+            ORDER BY id DESC
+            """,
+            (invoice_id,),
+        ).fetchall()
 
+        invoice["activity_history"] = [
+            dict(activity) for activity in activities
+        ]
         return invoice
 
 
