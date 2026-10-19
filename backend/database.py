@@ -141,7 +141,21 @@ def save_invoice(
 def list_invoices():
     with sqlite3.connect(DATABASE_PATH) as connection:
         connection.row_factory = sqlite3.Row
-        rows = connection.execute("SELECT * FROM invoices ORDER BY id DESC").fetchall()
+
+        rows = connection.execute(
+    """
+    SELECT
+        invoices.*,
+        (
+            SELECT COUNT(*)
+            FROM invoice_validation_issues
+            WHERE invoice_validation_issues.invoice_id = invoices.id
+        ) AS validation_issue_count
+    FROM invoices
+    ORDER BY invoices.id DESC
+    """
+).fetchall()
+
         return [dict(row) for row in rows]
 
 def get_invoice(invoice_id: int):

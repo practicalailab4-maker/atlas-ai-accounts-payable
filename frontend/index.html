@@ -235,6 +235,7 @@
                 <th>Due Date</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Validation Issues</th>
                 <th>Details</th>
             </tr>
         </thead>
@@ -333,6 +334,14 @@
                     statusCell.classList.add("status-rejected");
                 }
                 row.appendChild(statusCell);
+                const validationCell = document.createElement("td");
+                const issueCount = Number(invoice.validation_issue_count || 0);
+
+                validationCell.textContent = issueCount > 0
+                    ? `${issueCount} issue${issueCount === 1 ? "" : "s"}`
+                    : "None";
+
+                row.appendChild(validationCell);
                 const detailsCell = document.createElement("td");
                 const viewButton = document.createElement("button");
 
