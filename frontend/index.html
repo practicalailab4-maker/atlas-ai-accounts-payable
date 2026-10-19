@@ -222,6 +222,12 @@
         <input type="checkbox" id="overdue-filter">
         Show overdue invoices only
     </label>
+    
+    <label>
+        <input type="checkbox" id="validation-filter">
+        Show invoices with validation issues only
+    </label>
+    
     <button type="button" id="clear-filters">
         Clear Filters
     </button>
@@ -355,23 +361,56 @@
                 row.appendChild(detailsCell);
             tableBody.appendChild(row);
         });
-        document.getElementById("overdue-filter").addEventListener("change", function () {
-            const overdueOnly = this.checked;
+        
+        document.getElementById("validation-filter").addEventListener("change", function () {
+            const validationOnly = this.checked;
+            const overdueOnly = document.getElementById("overdue-filter").checked;
+            const selectedStatus = document.getElementById("status-filter").value;
+            const searchTerm = document.getElementById("invoice-search").value.toLowerCase();
 
             document.querySelectorAll("#invoice-table-body tr").forEach(row => {
-                const overdue = row.querySelector(".date-overdue") !== null;
-                const searchTerm = document.getElementById("invoice-search").value.toLowerCase();
-                const matchesSearch = row.textContent.toLowerCase().includes(searchTerm);
-                const selectedStatus = document.getElementById("status-filter").value;
+                const hasIssues = row.cells[6].textContent.trim() !== "None";
+                const isOverdue = row.querySelector(".date-overdue") !== null;
                 const rowStatus = row.cells[5].textContent.trim().toLowerCase().replaceAll(" ", "_");
                 const matchesStatus = selectedStatus === "all" || rowStatus === selectedStatus;
+                const matchesSearch = row.textContent.toLowerCase().includes(searchTerm);
 
                 row.style.display =
-                    matchesSearch && (!overdueOnly || overdue) && matchesStatus
+                    (!validationOnly || hasIssues) &&
+                        (!overdueOnly || isOverdue) &&
+                        matchesStatus &&
+                        matchesSearch
                         ? ""
                         : "none";
             });
-                        updateVisibleInvoiceCount();
+
+            updateVisibleInvoiceCount();
+        });
+
+
+        document.getElementById("overdue-filter").addEventListener("change", function () {
+            const overdueOnly = this.checked;
+            const validationOnly = document.getElementById("validation-filter").checked;
+            const selectedStatus = document.getElementById("status-filter").value;
+            const searchTerm = document.getElementById("invoice-search").value.toLowerCase();
+
+            document.querySelectorAll("#invoice-table-body tr").forEach(row => {
+                const isOverdue = row.querySelector(".date-overdue") !== null;
+                const hasIssues = row.cells[6].textContent.trim() !== "None";
+                const rowStatus = row.cells[5].textContent.trim().toLowerCase().replaceAll(" ", "_");
+                const matchesStatus = selectedStatus === "all" || rowStatus === selectedStatus;
+                const matchesSearch = row.textContent.toLowerCase().includes(searchTerm);
+
+                row.style.display =
+                    (!overdueOnly || isOverdue) &&
+                        (!validationOnly || hasIssues) &&
+                        matchesStatus &&
+                        matchesSearch
+                        ? ""
+                        : "none";
+            });
+
+            updateVisibleInvoiceCount();
         });
             document.getElementById("status-filter").addEventListener("change", function () {
                 const selectedStatus = this.value;
@@ -386,9 +425,14 @@
 
                     const matchesSearch = row.textContent.toLowerCase().includes(searchTerm);
                     const isOverdue = row.querySelector(".date-overdue") !== null;
+                    const validationOnly = document.getElementById("validation-filter").checked;
+                    const hasIssues = row.cells[6].textContent.trim() !== "None";
 
                     row.style.display =
-                        matchesStatus && matchesSearch && (!overdueOnly || isOverdue)
+                        matchesStatus &&
+                            matchesSearch &&
+                            (!overdueOnly || isOverdue) &&
+                            (!validationOnly || hasIssues)
                             ? ""
                             : "none";
                 });
@@ -400,6 +444,8 @@
             document.getElementById("invoice-search").value = "";
             document.getElementById("overdue-filter").checked = false;
             document.getElementById("status-filter").value = "all";
+
+            document.getElementById("validation-filter").checked = false;
             document.querySelectorAll("#invoice-table-body tr").forEach(row => {
                 row.style.display = "";
             });
@@ -427,11 +473,14 @@
                 const selectedStatus = document.getElementById("status-filter").value;
                 const rowStatus = row.cells[5].textContent.trim().toLowerCase().replaceAll(" ", "_");
                 const matchesStatus = selectedStatus === "all" || rowStatus === selectedStatus;
+                const validationOnly = document.getElementById("validation-filter").checked;
+                const hasIssues = row.cells[6].textContent.trim() !== "None";
 
                 row.style.display =
                     rowText.includes(searchTerm) &&
                         (!overdueOnly || isOverdue) &&
-                        matchesStatus
+                        matchesStatus &&
+                        (!validationOnly || hasIssues)
                         ? ""
                         : "none";
                });
