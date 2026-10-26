@@ -115,3 +115,27 @@ Use fictional or redacted invoice data in recordings. Avoid exposing API keys, p
 Atlas demonstrates how AI can assist with a real business workflow by combining document processing, structured extraction, validation, a review interface, and activity tracking.
 
 **Built as a practical AI automation project and demonstration.**
+
+## Atlas AI Voice Assistant
+
+Atlas includes an interactive voice assistant powered by ElevenLabs.
+
+Features include:
+
+- A "Meet Atlas" introduction with natural AI speech.
+- Live invoice-processing status and activity updates.
+- Automatic spoken announcements after invoice processing.
+- Personalized announcements identifying the vendor, invoice number, and amount.
+- A spoken Accounts Payable briefing summarizing invoices awaiting review.
+- Identification of overdue invoices requiring attention.
+- Clear explanations of pending invoice amounts, excluding approved invoices.
+
+Atlas provides information to support human decisions. It does not
+automatically approve invoices, execute payments, or confirm that
+overdue invoices are unpaid.
+
+### ElevenLabs configuration
+
+The voice features require an ElevenLabs API key and a configured
+voice ID. Store credentials in a local `.env` file and never commit
+that file to GitHub.
