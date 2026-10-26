@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas | AI Accounts Payable</title>
-    
+
     <style>
         #rejected-invoices {
             color: #dc2626;
@@ -66,7 +66,7 @@
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
-            
+
 }
 
         .invoice-register td.date-overdue {
@@ -107,7 +107,7 @@
         .invoice-register th {
            text-align: left;
 }
-        
+
         .invoice-register table {
             width: 100%;
             border-collapse: collapse;
@@ -165,7 +165,47 @@
     margin-top: 0;
     max-width: none;
 }
-    </style>
+
+        #upload-invoice {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #upload-invoice:hover {
+            background: #1d4ed8;
+        }
+
+        #upload-invoice:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+</style>
+
+<style id="atlas-work-animation">
+@keyframes atlas-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+        transform: scale(1.15);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+        transform: scale(1);
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -173,6 +213,43 @@
         <h1>ATLAS</h1>
         <p>AI Accounts Payable Employee</p>
     </header>
+
+<section id="atlas-employee-panel" style="display:flex;align-items:center;gap:20px;background:#eef4ff;border:1px solid #c7d8f8;border-radius:12px;padding:20px;margin:20px 0;">
+    <div style="font-size:54px;">🤖</div>
+    <div style="flex:1;">
+        <h2 style="margin:0;color:#1e3a8a;">Meet Atlas</h2>
+        <p style="margin:5px 0;color:#475569;">Your AI Accounts Payable Employee</p>
+        <p style="margin:5px 0;color:#15803d;font-weight:bold;">● On Duty</p>
+        <p id="atlas-message" style="margin:10px 0;color:#334155;">
+            Hello! I'm Atlas, your AI Accounts Payable Employee. I'm ready to process your invoices. Please upload your invoice whenever you're ready, and I'll process it as soon as it's uploaded.
+        </p>
+        <button type="button" id="atlas-speak-button" style="background:#2563eb;color:white;border:0;border-radius:6px;padding:10px 16px;cursor:pointer;">
+            🔊 Hear Atlas Speak
+        </button>
+        <button type="button" id="atlas-briefing-button" style="background:#0f766e;color:white;border:0;border-radius:6px;padding:10px 16px;cursor:pointer;margin-left:8px;">
+            📊 Hear AP Briefing
+        </button>
+
+        <div id="atlas-work-panel" style="margin-top:18px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="atlas-status-dot" style="width:12px;height:12px;background:#22c55e;border-radius:50%;display:inline-block;"></span>
+                <strong id="atlas-work-status" style="color:#166534;">Ready for work</strong>
+            </div>
+
+            <p id="atlas-work-description" style="margin:10px 0;color:#475569;">
+                Atlas is waiting for an invoice.
+            </p>
+
+            <div style="font-weight:bold;color:#334155;margin-bottom:8px;">
+                Activity
+            </div>
+
+            <div id="atlas-activity-feed" aria-live="polite" style="font-size:14px;color:#475569;">
+                ● Ready to receive an invoice
+            </div>
+        </div>
+    </div>
+</section>
 <section class="dashboard-stats">
     <div class="stat-card">
         <h3>Total Invoices</h3>
@@ -199,7 +276,7 @@
         <h3>Total Invoice Value (USD)</h3>
         <p id="total-invoice-value">--</p>
     </div>
-    
+
     <div class="stat-card">
         <h3>Overdue Invoice Value (USD)</h3>
         <p id="overdue-invoice-value">--</p>
@@ -209,6 +286,8 @@
     <button type="button" id="download-excel">
         Download Excel
     </button>
+    <button type="button" id="upload-invoice" class="atlas-upload-button">Upload Invoice</button>
+    <input type="file" id="invoice-file" accept=".pdf,application/pdf" style="display:none;">
     <h2>Invoice Register</h2>
     <p id="visible-invoice-count">Showing 54 of 54 invoices</p>
     <input type="text" id="invoice-search" placeholder="Search invoices or vendors...">
@@ -222,12 +301,12 @@
         <input type="checkbox" id="overdue-filter">
         Show overdue invoices only
     </label>
-    
+
     <label>
         <input type="checkbox" id="validation-filter">
         Show invoices with validation issues only
     </label>
-    
+
     <button type="button" id="clear-filters">
         Clear Filters
     </button>
@@ -361,7 +440,7 @@
                 row.appendChild(detailsCell);
             tableBody.appendChild(row);
         });
-        
+
         document.getElementById("validation-filter").addEventListener("change", function () {
             const validationOnly = this.checked;
             const overdueOnly = document.getElementById("overdue-filter").checked;
@@ -439,7 +518,7 @@
 
                                 updateVisibleInvoiceCount();
             });
-        
+
         document.getElementById("clear-filters").addEventListener("click", function () {
             document.getElementById("invoice-search").value = "";
             document.getElementById("overdue-filter").checked = false;
@@ -454,6 +533,78 @@
         });
         document.getElementById("download-excel").addEventListener("click", function () {
             window.location.href = `/invoices/export?refresh=${Date.now()}`;
+});
+const uploadButton = document.getElementById("upload-invoice");
+const invoiceFileInput = document.getElementById("invoice-file");
+
+uploadButton.addEventListener("click", function () {
+    invoiceFileInput.click();
+});
+
+invoiceFileInput.addEventListener("change", async function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    uploadButton.disabled = true;
+    uploadButton.textContent = "Processing Invoice...";
+
+    // Atlas begins working when an invoice is selected.
+    const atlasStatus = document.getElementById("atlas-work-status");
+    const atlasDescription = document.getElementById("atlas-work-description");
+    const atlasDot = document.getElementById("atlas-status-dot");
+    const atlasFeed = document.getElementById("atlas-activity-feed");
+
+    if (atlasStatus) {
+        atlasStatus.textContent = "Processing invoice";
+        atlasStatus.style.color = "#1d4ed8";
+    }
+
+    if (atlasDescription) {
+        atlasDescription.textContent = "Atlas is processing your uploaded invoice.";
+    }
+
+    if (atlasDot) {
+        atlasDot.style.background = "#2563eb";
+        atlasDot.style.animation = "atlas-pulse 1s infinite";
+    }
+
+    if (atlasFeed) {
+        atlasFeed.textContent = "✓ Invoice selected — processing started";
+    }
+
+    try {
+        const response = await fetch("/invoices/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(
+                typeof error.detail === "string"
+                    ? error.detail
+                    : "Invoice upload failed."
+            );
+        }
+
+        const processedInvoice = await response.json();
+        sessionStorage.setItem(
+            "atlas-last-invoice",
+            JSON.stringify(processedInvoice)
+        );
+        sessionStorage.setItem("atlas-invoice-processed", "yes");
+        window.location.reload();
+
+    } catch (error) {
+        alert("Upload failed: " + error.message);
+    } finally {
+        uploadButton.disabled = false;
+        uploadButton.textContent = "Upload Invoice";
+        invoiceFileInput.value = "";
+    }
         });
         function updateVisibleInvoiceCount() {
             const rows = document.querySelectorAll("#invoice-table-body tr");
@@ -486,10 +637,181 @@
                });
             updateVisibleInvoiceCount();
         });
-          updateVisibleInvoiceCount();  
+          updateVisibleInvoiceCount();
         }
         loadDashboard();
 </script>
+
+<script id="atlas-speech-script">
+document.getElementById("atlas-speak-button").addEventListener("click", async function () {
+    const button = this;
+    button.disabled = true;
+    button.textContent = "🔊 Atlas is preparing her voice...";
+
+    try {
+        const response = await fetch("/atlas/speak", { method: "POST" });
+
+        if (!response.ok) {
+            throw new Error("Voice request failed: " + response.status);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.addEventListener("ended", () => URL.revokeObjectURL(audioUrl));
+        audio.addEventListener("error", () => URL.revokeObjectURL(audioUrl));
+
+        await audio.play();
+    } catch (error) {
+        console.error("Atlas voice error:", error);
+        alert("Atlas could not speak. Please check the server and ElevenLabs settings.");
+    } finally {
+        button.disabled = false;
+        button.textContent = "🔊 Hear Atlas Speak";
+    }
+});
+</script>
+
+
+<script id="atlas-ap-briefing-voice">
+document.getElementById("atlas-briefing-button").addEventListener("click", async function () {
+    const button = this;
+    button.disabled = true;
+    button.textContent = "🔊 Atlas is preparing your briefing...";
+
+    try {
+        const response = await fetch("/atlas/speak?announcement=ap_briefing", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Atlas briefing voice request failed");
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.addEventListener("ended", () => URL.revokeObjectURL(audioUrl));
+        audio.addEventListener("error", () => URL.revokeObjectURL(audioUrl));
+
+        await audio.play();
+    } catch (error) {
+        console.error("Atlas AP briefing error:", error);
+        alert("Atlas could not deliver the AP briefing. Please check the server.");
+    } finally {
+        button.disabled = false;
+        button.textContent = "📊 Hear AP Briefing";
+    }
+});
+</script>
+
+
+<script id="atlas-invoice-announcement">
+window.addEventListener("load", async function () {
+    if (sessionStorage.getItem("atlas-invoice-processed") !== "yes") {
+        return;
+    }
+
+    sessionStorage.removeItem("atlas-invoice-processed");
+
+    // Show the result of the successful invoice upload.
+    const atlasStatus = document.getElementById("atlas-work-status");
+    const atlasDescription = document.getElementById("atlas-work-description");
+    const atlasDot = document.getElementById("atlas-status-dot");
+    const atlasFeed = document.getElementById("atlas-activity-feed");
+
+    if (atlasStatus) {
+        atlasStatus.textContent = "Awaiting review";
+        atlasStatus.style.color = "#15803d";
+    }
+
+    if (atlasDescription) {
+        atlasDescription.textContent =
+            "Invoice processing completed successfully. Ready for your review.";
+    }
+
+    if (atlasDot) {
+        atlasDot.style.background = "#22c55e";
+        atlasDot.style.animation = "none";
+    }
+
+    if (atlasFeed) {
+        atlasFeed.innerHTML =
+            "✓ Invoice received<br>" +
+            "✓ Invoice processing completed<br>" +
+            "✓ Ready for human review";
+    }
+
+    const message = document.getElementById("atlas-message");
+
+    let invoice = {};
+    try {
+        invoice = JSON.parse(
+            sessionStorage.getItem("atlas-last-invoice") || "{}"
+        );
+    } catch (error) {
+        console.warn("Could not read invoice summary:", error);
+    }
+    sessionStorage.removeItem("atlas-last-invoice");
+
+    const vendor = invoice.vendor_name || "the uploaded vendor";
+    const number = invoice.invoice_number
+        ? "invoice " + invoice.invoice_number
+        : "your invoice";
+    const amount = invoice.total && invoice.currency
+        ? " for " + invoice.total + " " + invoice.currency
+        : "";
+
+    const issues = Array.isArray(invoice.validation_issues)
+        ? invoice.validation_issues.length
+        : 0;
+
+    const summary = "I've processed " + number +
+        " from " + vendor + amount + ". " +
+        (issues > 0
+            ? "I found " + issues +
+              " validation issue(s) that need your attention."
+            : "It's ready for your review.");
+
+    if (message) {
+        message.textContent = summary;
+    }
+
+    try {
+        const response = await fetch(
+            "/atlas/speak?announcement=invoice_complete" +
+            (Number.isInteger(invoice.invoice_id) && invoice.invoice_id > 0
+                ? "&invoice_id=" + encodeURIComponent(invoice.invoice_id)
+                : ""),
+            {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Voice service returned " + response.status);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.addEventListener("ended", () => {
+            URL.revokeObjectURL(audioUrl);
+        });
+
+        audio.addEventListener("error", () => {
+            URL.revokeObjectURL(audioUrl);
+        });
+
+        await audio.play();
+    } catch (error) {
+        console.warn("Atlas automatic announcement:", error);
+    }
+});
+</script>
+
 </body>
 
 </html>

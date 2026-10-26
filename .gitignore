@@ -222,3 +222,10 @@ __marimo__/
 # Atlas local data and invoice records
 /data/
 .DS_Store
+# Private API credentials
+.env
+
+# Atlas development backups
+backend/main_before_elevenlabs.py
+frontend/index_before_atlas_avatar.html
+frontend/index.html[ ]
